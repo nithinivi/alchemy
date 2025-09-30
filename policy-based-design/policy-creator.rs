@@ -4,7 +4,6 @@ pub trait Creator<T> {
     fn create(&self) -> T;
 }
 
-// "new" style creator (requires Default)
 pub struct OpNewCreator;
 
 impl<T: Default> Creator<T> for OpNewCreator {
