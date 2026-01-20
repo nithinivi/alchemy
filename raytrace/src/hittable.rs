@@ -1,7 +1,9 @@
 // hittable.rs
 
+use crate::interval::Interval;
 use crate::ray::Ray;
 use crate::vec3::{dot, Point3, Vec3};
+
 pub struct HitRecord {
     pub t: f64,
     pub p: Point3,
@@ -22,11 +24,11 @@ impl HitRecord {
     pub fn set_face_normal(&mut self, r: &Ray) {
         self.front_face = dot(r.direction, self.normal) < 0.0;
         if !self.front_face {
-            self.normal = -self.normal;
+            self.normal = -self.normal
         }
     }
 }
 
 pub trait Hittable {
-    fn hit(&self, r: &Ray, ray_tmin: f64, ray_tmax: f64) -> Option<HitRecord>;
+    fn hit(&self, r: &Ray, interval: Interval) -> Option<HitRecord>;
 }

@@ -1,32 +1,34 @@
-// hittable_list.rs
+/*!
+hittable_list.rs
+*/
 
 use crate::hittable::{HitRecord, Hittable};
+use crate::interval::Interval;
 use crate::ray::Ray;
 
-pub struct HittableList {
-    objects: Vec<Box<dyn Hittable>>, // arr of pointers
+pub struct HittableList<'a> {
+    objects: Vec<Box<dyn Hittable + 'a>>, // object has no components with shorter  lifetime
 }
 
-impl HittableList {
-    pub fn new() -> HittableList {
+impl<'a> HittableList<'a> {
+    pub fn new() -> HittableList<'a> {
         HittableList {
             objects: Vec::new(),
         }
     }
 
-    pub fn add(&mut self, object: impl Hittable + 'static) {
-        // 'static = WTF?!!>
+    pub fn add(&mut self, object: impl Hittable + 'a) {
         self.objects.push(Box::new(object));
     }
 }
 
-impl Hittable for HittableList {
-    fn hit(&self, r: &Ray, ray_tmin: f64, ray_tmax: f64) -> Option<HitRecord> {
+impl<'a> Hittable for HittableList<'a> {
+    fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
         let mut rec = None;
-        let mut closest_so_fat = ray_tmax;
+        let mut closest_so_fat = ray_t.max;
 
         for object in self.objects.iter() {
-            if let Some(hrec) = object.hit(r, ray_tmin, closest_so_fat) {
+            if let Some(hrec) = object.hit(r, Interval::new(ray_t.min, closest_so_fat)) {
                 closest_so_fat = hrec.t;
                 rec = Some(hrec);
             }
