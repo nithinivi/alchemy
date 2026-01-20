@@ -11,7 +11,7 @@ pub struct Camera {
     pub aspect_ratio: f64,
     pub image_width: usize,
     pub samples_per_pixel: usize,
-
+    pub max_depth: usize,
     //private variables
     image_height: usize,
     center: Point3,
@@ -28,6 +28,9 @@ impl Camera {
             image_width: 100,
             samples_per_pixel: 10,
             image_height: 0,
+            max_depth: 10,
+
+            // private
             center: Point3::new(0.0, 0.0, 0.0),
             pixel00_loc: Point3::new(0.0, 0.0, 0.0),
             pixel_delta_u: Vec3::zero(),
@@ -47,18 +50,8 @@ impl Camera {
                 let mut pixel_color = Color::new(0.0, 0.0, 0.0);
                 for _sample in 0..self.samples_per_pixel {
                     let r = self.get_ray(i, j);
-                    pixel_color += self.ray_color(&r, world);
+                    pixel_color += self.ray_color(&r, self.max_depth, world);
                 }
-
-                /*
-                                let pixel_center = self.pixel00_loc
-                                    + (i as f64 * self.pixel_delta_u)
-                                    + (j as f64 * self.pixel_delta_v);
-                                let ray_direction = pixel_center - self.center;
-                                let r = Ray::new(self.center, ray_direction);
-
-                                let pixel_color = self.ray_color(&r, world);
-                */
                 write_color(&mut out, self.pixel_samples_scale * pixel_color);
             }
         }
@@ -107,9 +100,15 @@ impl Camera {
         Vec3::new(random_f64() - 0.5, random_f64() - 0.5, 0.0)
     }
 
-    fn ray_color(&self, ray: &Ray, world: &impl Hittable) -> Color {
-        if let Some(rec) = world.hit(ray, Interval::new(0.0, f64::INFINITY)) {
-            return 0.5 * (Color::from(rec.normal) + Color::new(1.0, 1.0, 1.0));
+    fn ray_color(&self, ray: &Ray, depth: usize, world: &impl Hittable) -> Color {
+        // self.max_depth defines the limit recursion
+        if depth <= 0 {
+            return Color::new(0.0, 0.0, 0.0);
+        }
+
+        if let Some(rec) = world.hit(ray, Interval::new(0.001, f64::INFINITY)) {
+            let direction = rec.normal + Vec3::random_unit_vector();
+            return 0.5 * self.ray_color(&Ray::new(rec.p, direction), depth - 1, world);
         }
 
         let unit_direction = ray.direction.unit_vector();
