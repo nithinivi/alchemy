@@ -4,6 +4,7 @@ use crate::vec3::Vec3;
 use std::io::Write;
 use std::ops::{Add, AddAssign, Mul};
 
+#[derive(Clone, Copy)]
 pub struct Color {
     pub r: f64,
     pub g: f64,
@@ -19,6 +20,14 @@ impl Color {
 impl From<Vec3> for Color {
     fn from(value: Vec3) -> Self {
         Color::new(value.x, value.y, value.z)
+    }
+}
+
+impl Mul for Color {
+    type Output = Color;
+
+    fn mul(self, rhs: Self) -> Self::Output {
+        Color::new(self.r * rhs.r, self.g * rhs.g, self.b * rhs.b)
     }
 }
 

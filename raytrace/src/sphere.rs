@@ -2,21 +2,27 @@
 
 use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{dot, Point3};
 
-pub struct Sphere {
+pub struct Sphere<'a> {
     pub center: Point3,
     pub radius: f64,
+    pub mat: Box<dyn Material + 'a>, // Sphere owns the materal its made of
 }
 
-impl Sphere {
-    pub fn new(center: Point3, radius: f64) -> Sphere {
-        Sphere { center, radius }
+impl<'a> Sphere<'a> {
+    pub fn new(center: Point3, radius: f64, mat: impl Material + 'a) -> Sphere<'a> {
+        Sphere {
+            center,
+            radius,
+            mat: Box::new(mat),
+        }
     }
 }
 
-impl Hittable for Sphere {
+impl<'a> Hittable for Sphere<'a> {
     fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
         let oc = self.center - r.origin;
         let a = r.direction.length_squared();
@@ -40,7 +46,7 @@ impl Hittable for Sphere {
         let t = root;
         let p = r.at(t);
         let normal = (p - self.center) / self.radius;
-        let mut rec = HitRecord::new(t, p, normal);
+        let mut rec = HitRecord::new(t, p, normal, &*self.mat); // * removes from Box , & borrow
         rec.set_face_normal(r);
         Some(rec)
     }

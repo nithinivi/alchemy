@@ -44,6 +44,11 @@ impl Vec3 {
         *self / self.length()
     }
 
+    pub fn near_zero(&self) -> bool {
+        const s: f64 = 1e-8;
+        self.x.abs() < s && self.y.abs() < s && self.z.abs() < s
+    }
+
     pub fn random_unit_vector() -> Vec3 {
         loop {
             let p = Vec3::random_range(-1.0, 1.0);
@@ -61,6 +66,10 @@ impl Vec3 {
         } else {
             on_unit_sphere
         }
+    }
+
+    pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
+        v - 2.0 * dot(v, n) * n
     }
 }
 

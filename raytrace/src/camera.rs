@@ -102,13 +102,16 @@ impl Camera {
 
     fn ray_color(&self, ray: &Ray, depth: usize, world: &impl Hittable) -> Color {
         // self.max_depth defines the limit recursion
-        if depth <= 0 {
+        if depth == 0 {
             return Color::new(0.0, 0.0, 0.0);
         }
 
         if let Some(rec) = world.hit(ray, Interval::new(0.001, f64::INFINITY)) {
-            let direction = rec.normal + Vec3::random_unit_vector();
-            return 0.5 * self.ray_color(&Ray::new(rec.p, direction), depth - 1, world);
+            if let Some((attentuation, scattered)) = rec.mat.scatter(ray, &rec) {
+                return attentuation * self.ray_color(&scattered, depth - 1, world);
+            } else {
+                return Color::new(0.0, 0.0, 0.0);
+            }
         }
 
         let unit_direction = ray.direction.unit_vector();

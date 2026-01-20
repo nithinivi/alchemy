@@ -1,23 +1,26 @@
 // hittable.rs
 
 use crate::interval::Interval;
+use crate::material::Material;
 use crate::ray::Ray;
 use crate::vec3::{dot, Point3, Vec3};
 
-pub struct HitRecord {
+pub struct HitRecord<'a> {
     pub t: f64,
     pub p: Point3,
     pub normal: Vec3,
     pub front_face: bool,
+    pub mat: &'a dyn Material, // this borrow to any materal // any material
 }
 
-impl HitRecord {
-    pub fn new(t: f64, p: Point3, normal: Vec3) -> HitRecord {
+impl<'a> HitRecord<'a> {
+    pub fn new(t: f64, p: Point3, normal: Vec3, mat: &'a dyn Material) -> HitRecord {
         HitRecord {
             t,
             p,
             normal,
             front_face: true,
+            mat,
         }
     }
 
