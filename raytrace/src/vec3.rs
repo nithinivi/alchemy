@@ -7,7 +7,7 @@ use crate::util::{random_f64, random_f64_range};
 
 // allow printing (useful for debugging)
 // Clone = explicit .clone(), Copy = implicit copying when need
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub struct Vec3 {
     pub x: f64,
     pub y: f64,
@@ -48,8 +48,8 @@ impl Vec3 {
     }
 
     pub fn near_zero(&self) -> bool {
-        const s: f64 = 1e-8;
-        self.x.abs() < s && self.y.abs() < s && self.z.abs() < s
+        const S: f64 = 1e-8;
+        self.x.abs() < S && self.y.abs() < S && self.z.abs() < S
     }
 
     pub fn random_unit_vector() -> Vec3 {
@@ -64,27 +64,48 @@ impl Vec3 {
 
     pub fn random_on_hemisphere(normal: Vec3) -> Vec3 {
         let on_unit_sphere = Vec3::random_unit_vector();
-        if dot(on_unit_sphere, normal) > 0.0 {
+        if Self::dot(on_unit_sphere, normal) > 0.0 {
             -on_unit_sphere
         } else {
             on_unit_sphere
         }
     }
 
+    pub fn random_in_unit_disk() -> Vec3 {
+        loop {
+            let p = Vec3::new(
+                random_f64_range(-1.0, 1.0),
+                random_f64_range(-1.0, 1.0),
+                0.0,
+            );
+            if p.length_squared() < 1.0 {
+                return p;
+            }
+        }
+    }
+
     pub fn reflect(v: Vec3, n: Vec3) -> Vec3 {
-        v - 2.0 * dot(v, n) * n
+        v - 2.0 * Self::dot(v, n) * n
     }
 
     pub fn refract(uv: Vec3, n: Vec3, etai_over_etat: f64) -> Vec3 {
-        let cos_theta = dot(-uv, n).min(1.0);
+        let cos_theta = Self::dot(-uv, n).min(1.0);
         let r_out_prep = etai_over_etat * (uv + cos_theta * n);
         let r_out_parrallel = -(((1.0 - r_out_prep.length_squared()).abs()).sqrt()) * n;
         r_out_prep + r_out_parrallel
     }
-}
 
-pub fn dot(u: Vec3, v: Vec3) -> f64 {
-    u.x * v.x + u.y * v.y + u.z * v.z
+    pub fn cross(u: Vec3, v: Vec3) -> Vec3 {
+        Vec3::new(
+            u.y * v.z - u.z * v.y,
+            u.z * v.x - u.x * v.z,
+            u.x * v.y - u.y * v.x,
+        )
+    }
+
+    pub fn dot(u: Vec3, v: Vec3) -> f64 {
+        u.x * v.x + u.y * v.y + u.z * v.z
+    }
 }
 
 impl Neg for Vec3 {

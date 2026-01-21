@@ -4,7 +4,7 @@ use crate::hittable::{HitRecord, Hittable};
 use crate::interval::Interval;
 use crate::material::Material;
 use crate::ray::Ray;
-use crate::vec3::{dot, Point3};
+use crate::vec3::{Point3, Vec3};
 
 pub struct Sphere<'a> {
     pub center: Point3,
@@ -26,7 +26,7 @@ impl<'a> Hittable for Sphere<'a> {
     fn hit(&self, r: &Ray, ray_t: Interval) -> Option<HitRecord> {
         let oc = self.center - r.origin;
         let a = r.direction.length_squared();
-        let h = dot(r.direction, oc);
+        let h = Vec3::dot(r.direction, oc);
         let c = oc.length_squared() - self.radius * self.radius;
         let discriminant = h * h - a * c;
 

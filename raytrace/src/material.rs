@@ -1,7 +1,7 @@
 // material.rs
 
 use crate::util::random_f64;
-use crate::vec3::{dot, Vec3};
+use crate::vec3::Vec3;
 use crate::{color::Color, hittable::HitRecord, ray::Ray};
 
 pub trait Material {
@@ -51,7 +51,7 @@ impl Material for Metal {
         reflected = reflected.unit_vector() + (self.fuzz * Vec3::random_unit_vector());
         let scattered = Ray::new(rec.p, reflected);
         let attentuation = self.albedo;
-        if dot(scattered.direction, rec.normal) > 0.0 {
+        if Vec3::dot(scattered.direction, rec.normal) > 0.0 {
             Some((attentuation, scattered))
         } else {
             None
@@ -85,7 +85,7 @@ impl Material for Dialectric {
         };
 
         let unit_direction = r_in.direction.unit_vector();
-        let cos_theta = dot(-unit_direction, rec.normal).min(1.0);
+        let cos_theta = Vec3::dot(-unit_direction, rec.normal).min(1.0);
         let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
         let cannot_refract = ri * sin_theta > 1.0;
         let direction;

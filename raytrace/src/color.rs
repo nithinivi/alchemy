@@ -1,9 +1,9 @@
 // color.rs
 use crate::interval::Interval;
+use crate::util::{random_f64, random_f64_range};
 use crate::vec3::Vec3;
 use std::io::Write;
 use std::ops::{Add, AddAssign, Mul};
-
 #[derive(Clone, Copy)]
 pub struct Color {
     pub r: f64,
@@ -14,6 +14,18 @@ pub struct Color {
 impl Color {
     pub fn new(r: f64, g: f64, b: f64) -> Color {
         Color { r, g, b }
+    }
+
+    pub fn random() -> Color {
+        Color::new(random_f64(), random_f64(), random_f64())
+    }
+
+    pub fn random_range(min: f64, max: f64) -> Color {
+        Color::new(
+            random_f64_range(min, max),
+            random_f64_range(min, max),
+            random_f64_range(min, max),
+        )
     }
 }
 
