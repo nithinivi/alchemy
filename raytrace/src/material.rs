@@ -1,5 +1,6 @@
 // material.rs
 
+use crate::util::random_f64;
 use crate::vec3::{dot, Vec3};
 use crate::{color::Color, hittable::HitRecord, ray::Ray};
 
@@ -55,5 +56,46 @@ impl Material for Metal {
         } else {
             None
         }
+    }
+}
+
+pub struct Dialectric {
+    refraction_index: f64,
+}
+
+impl Dialectric {
+    pub fn new(refraction_index: f64) -> Dialectric {
+        Dialectric { refraction_index }
+    }
+
+    pub fn reflectance(cosine: f64, refraction_index: f64) -> f64 {
+        let mut r0 = (1.0 - refraction_index) / (1.0 + refraction_index);
+        r0 = r0 * r0;
+        r0 + (1.0 - r0) * ((1.0 - cosine).powf(5.0))
+    }
+}
+
+impl Material for Dialectric {
+    fn scatter(&self, r_in: &Ray, rec: &HitRecord) -> Option<(Color, Ray)> {
+        let attenutation = Color::new(1.0, 1.0, 1.0);
+        let ri = if rec.front_face {
+            1.0 / self.refraction_index
+        } else {
+            self.refraction_index
+        };
+
+        let unit_direction = r_in.direction.unit_vector();
+        let cos_theta = dot(-unit_direction, rec.normal).min(1.0);
+        let sin_theta = (1.0 - cos_theta * cos_theta).sqrt();
+        let cannot_refract = ri * sin_theta > 1.0;
+        let direction;
+        if cannot_refract || Dialectric::reflectance(cos_theta, ri) > random_f64() {
+            direction = Vec3::reflect(unit_direction, rec.normal);
+        } else {
+            direction = Vec3::refract(unit_direction, rec.normal, ri);
+        }
+
+        let scattered = Ray::new(rec.p, direction);
+        Some((attenutation, scattered))
     }
 }
